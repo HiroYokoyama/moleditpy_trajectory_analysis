@@ -1,0 +1,19 @@
+{
+  "source": "trajectory_analysis/__init__.py",
+  "title": "Trajectory Analysis",
+  "package": "trajectory_analysis",
+  "archive": "trajectory_analysis_{version}.zip",
+  "assets": [
+    "trajectory_analysis_{version}.zip"
+  ],
+  "include": [
+    "README.md",
+    "LICENSE",
+    "COPYING",
+    "LICENSING.md"
+  ],
+  "exclude": [
+    "*/__pycache__/*",
+    "*/.git/*"
+  ]
+}
