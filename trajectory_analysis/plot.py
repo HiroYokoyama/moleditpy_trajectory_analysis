@@ -16,13 +16,19 @@ COLORS = ("#1f77b4", "#d62728", "#2ca02c", "#9467bd", "#ff7f0e")
 
 
 def matplotlib_available():
+    """True when matplotlib is installed and its Qt backend uses PySide6.
+
+    matplotlib uses the Qt binding that is already imported (PySide6 inside
+    MoleditPy); if another binding won, its canvas cannot go into this dialog and
+    the built-in plot is used instead.
+    """
     try:
-        import matplotlib  # noqa: F401
+        from matplotlib.backends import qt_compat
         from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg  # noqa: F401
         from matplotlib.figure import Figure  # noqa: F401
     except Exception:  # noqa: BLE001 - any import failure means no matplotlib
         return False
-    return True
+    return str(getattr(qt_compat, "QT_API", "")).lower() == "pyside6"
 
 
 def nice_ticks(lo, hi, target=6):
@@ -38,12 +44,9 @@ def nice_ticks(lo, hi, target=6):
         step = factor * mag
         if raw <= step:
             break
-    start = math.floor(lo / step) * step
-    ticks = []
-    value = start
-    while value <= hi + step * 0.5 and len(ticks) < 50:
-        ticks.append(round(value, 12))
-        value += step
+    first = math.floor(lo / step + 1e-9)
+    last = math.ceil(hi / step - 1e-9)
+    ticks = [round(k * step, 12) for k in range(first, last + 1)][:50]
     return ticks
 
 
