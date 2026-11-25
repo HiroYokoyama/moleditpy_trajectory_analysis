@@ -1,7 +1,10 @@
 """Regenerate the example trajectories in this folder (needs numpy and RDKit).
 
-water_box.gro      64 rigid waters diffusing in a 12.42 A cubic box, 40 frames,
-                   2 ps apart, written the way GROMACS trjconv writes them.
+water_box.gro      64 rigid waters in a 12.42 A cubic box (1 g/cm^3), 40 frames
+                   written the way GROMACS trjconv writes them (t= in the title,
+                   molecules kept whole).  The oxygens follow a Lennard-Jones
+                   Monte Carlo run (sigma 3.15 A, kT/eps 2.0), so the frames are a
+                   liquid-like pseudo-trajectory for trying the analyses, not MD.
 ethanol_conf.xyz   10 ethanol conformers with MMFF94 energies on the comment line.
 """
 
@@ -14,27 +17,45 @@ from rdkit.Chem import AllChem
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
-def water_box(path, n_side=4, length=12.42, frames=40, seed=7):
+def _lj_energy(pos, i, length, sigma=3.15):
+    d = pos - pos[i]
+    d -= length * np.round(d / length)
+    r2 = (d * d).sum(axis=1)
+    r2[i] = np.inf
+    r2 = r2[r2 < (2.5 * sigma) ** 2]
+    s6 = (sigma * sigma / r2) ** 3
+    return float((4.0 * (s6 * s6 - s6)).sum())
+
+
+def water_box(path, n_side=4, length=12.42, frames=40, sweeps_per_frame=20, seed=7):
     rng = np.random.default_rng(seed)
     geom = np.array([[0.0, 0.0, 0.0], [0.9572, 0.0, 0.0], [-0.2400, 0.9266, 0.0]])
     spacing = length / n_side
-    centres = (
-        np.stack(np.meshgrid(*[np.arange(n_side)] * 3, indexing="ij"), -1).reshape(
-            -1, 3
-        )
-        + 0.5
-    ) * spacing
-    n = len(centres)
+    grid = np.stack(np.meshgrid(*[np.arange(n_side)] * 3, indexing="ij"), -1)
+    pos = (grid.reshape(-1, 3) + 0.5) * spacing
+    n = len(pos)
     rots = [np.linalg.qr(rng.normal(size=(3, 3)))[0] for _ in range(n)]
+    step, kt = 0.5, 2.0
+
+    def sweep():
+        for i in rng.permutation(n):
+            old = pos[i].copy()
+            e_old = _lj_energy(pos, i, length)
+            pos[i] = old + rng.uniform(-step, step, 3)
+            e_new = _lj_energy(pos, i, length)
+            if e_new > e_old and rng.random() >= np.exp(-(e_new - e_old) / kt):
+                pos[i] = old
+
+    for _ in range(200):  # melt the lattice
+        sweep()
     out = []
     for f in range(frames):
         lines = [f"Water box t= {2.0 * f:.5f} step= {1000 * f}", f"{3 * n:5d}"]
         k = 1
         for m in range(n):
-            atoms = centres[m] + geom @ rots[m].T
+            atoms = pos[m] + geom @ rots[m].T
             # GROMACS keeps molecules whole: wrap by the oxygen only.
-            shift = np.floor(atoms[0] / length) * length
-            atoms = atoms - shift
+            atoms = atoms - np.floor(atoms[0] / length) * length
             for name, xyz in zip(("OW", "HW1", "HW2"), atoms):
                 x, y, z = xyz / 10.0
                 lines.append(
@@ -43,7 +64,8 @@ def water_box(path, n_side=4, length=12.42, frames=40, seed=7):
                 k += 1
         lines.append(f"{length / 10:10.5f}{length / 10:10.5f}{length / 10:10.5f}")
         out.append("\n".join(lines))
-        centres = centres + rng.normal(0.0, 0.35, centres.shape)
+        for _ in range(sweeps_per_frame):
+            sweep()
         for m in range(n):
             axis = rng.normal(size=3)
             axis /= np.linalg.norm(axis)

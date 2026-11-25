@@ -396,7 +396,8 @@ def msd_fft(positions):
     f = np.fft.rfft(positions, n=2 * t, axis=0)
     acf = np.fft.irfft((f * f.conj()).real, n=2 * t, axis=0)[:t].sum(axis=2)
     s2 = acf / (t - np.arange(t))[:, None]
-    return (s1 - 2.0 * s2).mean(axis=1)
+    # Round-off can leave tiny negative values (lag 0); MSD is never negative.
+    return np.maximum((s1 - 2.0 * s2).mean(axis=1), 0.0)
 
 
 def run_msd(topology, frames, params, progress=None, cancelled=None):
