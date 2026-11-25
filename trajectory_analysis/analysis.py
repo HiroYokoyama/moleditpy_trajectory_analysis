@@ -105,7 +105,9 @@ class Result:
 
     def csv_text(self):
         lines = []
-        for note in [self.title] + ([self.summary] if self.summary else []) + self.notes:
+        for note in (
+            [self.title] + ([self.summary] if self.summary else []) + self.notes
+        ):
             for part in str(note).splitlines():
                 lines.append("# " + part)
         lines.append(",".join(_csv_cell(c) for c in self.columns))
@@ -142,7 +144,9 @@ def frame_indices(n_frames, first=1, last=0, stride=1):
     last = n_frames if int(last) <= 0 else min(int(last), n_frames)
     stride = max(1, int(stride))
     if first > last:
-        raise AnalysisError(f"the first frame ({first}) is after the last frame ({last})")
+        raise AnalysisError(
+            f"the first frame ({first}) is after the last frame ({last})"
+        )
     return list(range(first - 1, last, stride))
 
 
@@ -426,8 +430,8 @@ def run_msd(topology, frames, params, progress=None, cancelled=None):
     msd = msd_fft(traj[:, :, axes])
     spacing, unit = frame_spacing(frames, indices, p["dt"])
     lag = np.arange(len(indices)) * spacing
-    lo = int(round(float(p["msd_fit_start"]) * (len(indices) - 1)))
-    hi = int(round(float(p["msd_fit_end"]) * (len(indices) - 1)))
+    lo = round(float(p["msd_fit_start"]) * (len(indices) - 1))
+    hi = round(float(p["msd_fit_end"]) * (len(indices) - 1))
     lo = max(1, min(lo, len(indices) - 2))
     hi = max(lo + 1, min(hi, len(indices) - 1))
     slope, intercept = np.polyfit(lag[lo : hi + 1], msd[lo : hi + 1], 1)
@@ -459,7 +463,9 @@ def run_msd(topology, frames, params, progress=None, cancelled=None):
         ylabel="MSD (A^2)",
         series=[
             Series("MSD", lag, msd),
-            Series(f"fit, D = {d_coef:.4g}", lag[lo : hi + 1], fit[lo : hi + 1], "dash"),
+            Series(
+                f"fit, D = {d_coef:.4g}", lag[lo : hi + 1], fit[lo : hi + 1], "dash"
+            ),
         ],
         columns=["lag", "msd_A2", "fit_A2"],
         rows=np.column_stack([lag, msd, fit]),
@@ -484,7 +490,14 @@ def _rmsd_setup(topology, frames, p):
     if p["rmsd_align"] and len(fit) < 3:
         raise AnalysisError("alignment needs at least three atoms in the fit selection")
     ref_coords, _ = frames.read_frame(ref_index)
-    return indices, sel, fit, fit_text, ref_index, np.array(ref_coords, dtype=np.float64)
+    return (
+        indices,
+        sel,
+        fit,
+        fit_text,
+        ref_index,
+        np.array(ref_coords, dtype=np.float64),
+    )
 
 
 def run_rmsd(topology, frames, params, progress=None, cancelled=None):
@@ -550,7 +563,11 @@ def run_rmsf(topology, frames, params, progress=None, cancelled=None):
     k = int(np.argmax(rmsf))
     summary = (
         f"RMSF of '{p['rmsd_sel']}' ({len(sel)} atoms) over {n} frames"
-        + (f", aligned on '{fit_text}' to frame {ref_index + 1}" if p["rmsd_align"] else "")
+        + (
+            f", aligned on '{fit_text}' to frame {ref_index + 1}"
+            if p["rmsd_align"]
+            else ""
+        )
         + f". Mean {rmsf.mean():.4f} A; largest {rmsf[k]:.4f} A at atom "
         f"{sel[k] + 1} ({topology.names[sel[k]]})."
     )
@@ -558,7 +575,9 @@ def run_rmsf(topology, frames, params, progress=None, cancelled=None):
         title="RMSF",
         xlabel="Atom number",
         ylabel="RMSF (A)",
-        series=[Series("RMSF", atom_numbers, rmsf, "points" if len(sel) < 3 else "line")],
+        series=[
+            Series("RMSF", atom_numbers, rmsf, "points" if len(sel) < 3 else "line")
+        ],
         columns=["atom", "element", "name", "resname", "resid", "rmsf_A"],
         rows=rows,
         summary=summary,
@@ -633,7 +652,9 @@ def run_density(topology, frames, params, progress=None, cancelled=None):
             periodic = True
             frac = (x @ np.linalg.inv(box))[:, axis]
             frac -= np.floor(frac)
-            counts, _ = np.histogram(frac, bins=nbins, range=(0.0, 1.0), weights=weights)
+            counts, _ = np.histogram(
+                frac, bins=nbins, range=(0.0, 1.0), weights=weights
+            )
             hist += counts
             height_sum += cell_widths(box)[axis]
             volume_sum += abs(float(np.linalg.det(box)))

@@ -210,7 +210,8 @@ _NUMBER = r"([-+]?(?:\d+\.\d*|\.\d+|\d+)(?:[eEdD][-+]?\d+)?)"
 _ENERGY_RES = [
     # extended XYZ / ASE: energy=-1.23, Energy: -1.23, E_tot = ...
     re.compile(
-        r"(?:^|[\s,;])(?:total[_ ]?energy|energy|etot|e_tot|epot|e)\s*[:=]\s*" + _NUMBER,
+        r"(?:^|[\s,;])(?:total[_ ]?energy|energy|etot|e_tot|epot|e)\s*[:=]\s*"
+        + _NUMBER,
         re.IGNORECASE,
     ),
     # ORCA trajectories: "Coordinates from ORCA-job x E -76.32"; xtb "energy: -5.07"
@@ -678,7 +679,9 @@ def open_xyz(path):
     symbols = []
     for line in lines[2 : 2 + n]:
         parts = line.split()
-        symbols.append(elements.symbol(elements.atomic_number(parts[0])) if parts else "X")
+        symbols.append(
+            elements.symbol(elements.atomic_number(parts[0])) if parts else "X"
+        )
     topology = Topology(symbols)
     return topology, MappedFrames(path, valid, n, parse, box, _xyz_meta)
 

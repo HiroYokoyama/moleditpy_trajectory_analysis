@@ -53,7 +53,9 @@ def _ranges(values, keyword):
     for value in values:
         match = _RANGE_RE.match(value)
         if not match:
-            raise SelectionError(f"{keyword} expects numbers or ranges like 1-10, not {value!r}")
+            raise SelectionError(
+                f"{keyword} expects numbers or ranges like 1-10, not {value!r}"
+            )
         lo = int(match.group(1))
         hi = int(match.group(2)) if match.group(2) is not None else lo
         if hi < lo:
@@ -149,7 +151,8 @@ class _Parser:
             )
         if word == "protein":
             return np.array(
-                [r.upper() in elements.PROTEIN_RESIDUES for r in top.resnames], dtype=bool
+                [r.upper() in elements.PROTEIN_RESIDUES for r in top.resnames],
+                dtype=bool,
             )
         if word == "hydrogen":
             return np.array([s == "H" for s in top.symbols], dtype=bool)

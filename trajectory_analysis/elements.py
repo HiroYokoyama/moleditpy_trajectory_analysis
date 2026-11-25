@@ -126,12 +126,58 @@ ION_RESIDUES = {
 }
 
 PROTEIN_RESIDUES = frozenset(
-    "ALA ARG ASN ASP CYS GLN GLU GLY HIS ILE LEU LYS MET PHE PRO SER THR TRP TYR "
-    "VAL HID HIE HIP HSD HSE HSP CYX ASH GLH LYN NALA NGLY CALA".split()
+    [
+        "ALA",
+        "ARG",
+        "ASN",
+        "ASP",
+        "CYS",
+        "GLN",
+        "GLU",
+        "GLY",
+        "HIS",
+        "ILE",
+        "LEU",
+        "LYS",
+        "MET",
+        "PHE",
+        "PRO",
+        "SER",
+        "THR",
+        "TRP",
+        "TYR",
+        "VAL",
+        "HID",
+        "HIE",
+        "HIP",
+        "HSD",
+        "HSE",
+        "HSP",
+        "CYX",
+        "ASH",
+        "GLH",
+        "LYN",
+        "NALA",
+        "NGLY",
+        "CALA",
+    ]
 )
 
 WATER_RESIDUES = frozenset(
-    "HOH WAT H2O SOL TIP3 TIP4 TIP5 TIP SPC DOD T3P T4P".split()
+    [
+        "HOH",
+        "WAT",
+        "H2O",
+        "SOL",
+        "TIP3",
+        "TIP4",
+        "TIP5",
+        "TIP",
+        "SPC",
+        "DOD",
+        "T3P",
+        "T4P",
+    ]
 )
 
 
