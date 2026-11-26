@@ -11,7 +11,7 @@ import logging
 _log = logging.getLogger(__name__)
 
 PLUGIN_NAME = "Trajectory Analysis"
-PLUGIN_VERSION = "0.1.0"
+PLUGIN_VERSION = "0.1.1"
 PLUGIN_AUTHOR = "HiroYokoyama"
 PLUGIN_DESCRIPTION = (
     "Analyse MD trajectories (multi-frame PDB/GRO/XYZ, SDF conformers): RDF with "
