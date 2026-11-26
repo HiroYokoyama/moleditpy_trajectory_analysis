@@ -20,7 +20,7 @@ def _constants():
 def test_required_metadata():
     c = _constants()
     assert c["PLUGIN_NAME"] == "Trajectory Analysis"
-    assert c["PLUGIN_VERSION"] == "0.1.1"
+    assert c["PLUGIN_VERSION"] == "0.1.2"
     assert c["PLUGIN_AUTHOR"] == "HiroYokoyama"
     assert c["PLUGIN_CATEGORY"] == "Analysis"
     assert c["PLUGIN_SUPPORTED_MOLEDITPY_VERSION"] == ">=5.0.0, <6.0.0"

@@ -11,7 +11,7 @@ import logging
 _log = logging.getLogger(__name__)
 
 PLUGIN_NAME = "Trajectory Analysis"
-PLUGIN_VERSION = "0.1.1"
+PLUGIN_VERSION = "0.1.2"
 PLUGIN_AUTHOR = "HiroYokoyama"
 PLUGIN_DESCRIPTION = (
     "Analyse MD trajectories (multi-frame PDB/GRO/XYZ, SDF conformers): RDF with "
@@ -19,7 +19,7 @@ PLUGIN_DESCRIPTION = (
     "gyration, density profiles and per-frame energies, with CSV/PNG export."
 )
 PLUGIN_CATEGORY = "Analysis"
-PLUGIN_TAGS = ["Analysis"]
+PLUGIN_TAGS = ["Analysis", "MD"]
 PLUGIN_DEPENDENCIES = []
 PLUGIN_OPTIONAL_DEPENDENCIES = ["matplotlib"]
 PLUGIN_SUPPORTED_MOLEDITPY_VERSION = ">=5.0.0, <6.0.0"
