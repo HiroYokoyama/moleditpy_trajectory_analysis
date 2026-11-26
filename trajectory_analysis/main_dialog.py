@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
     QDoubleSpinBox,
     QFileDialog,
     QFormLayout,
+    QFrame,
     QGridLayout,
     QGroupBox,
     QHBoxLayout,
@@ -24,6 +25,7 @@ from PySide6.QtWidgets import (
     QProgressBar,
     QPushButton,
     QRadioButton,
+    QScrollArea,
     QSpinBox,
     QSplitter,
     QStackedWidget,
@@ -35,6 +37,7 @@ from PySide6.QtWidgets import (
 
 from . import analysis, formats
 from .plot import make_plot_widget
+from .wheel_guard import install_wheel_guard
 from .worker import JobThread
 
 _log = logging.getLogger(__name__)
@@ -87,6 +90,36 @@ def describe(topology, frames):
     return "; ".join(parts)
 
 
+
+def _scrolled_column(page):
+    """The settings column in a vertical scroll area, so it never makes the dialog taller
+    than the screen; Run and the progress bar stay below it, always in view."""
+    area = QScrollArea()
+    area.setWidgetResizable(True)
+    area.setFrameShape(QFrame.Shape.NoFrame)
+    area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+    area.setWidget(page)
+    area.setMinimumWidth(
+        page.minimumSizeHint().width() + area.verticalScrollBar().sizeHint().width()
+    )
+    # Scrolling over a field must not change it: fields take the wheel once clicked.
+    install_wheel_guard(page)
+    return area
+
+
+def fit_to_screen(dialog, fraction=0.9):
+    """Shrink the dialog's first size to the screen it opens on (small laptop screens)."""
+    parent = dialog.parentWidget()
+    screen = parent.screen() if parent is not None else dialog.screen()
+    if screen is None:
+        return
+    area = screen.availableGeometry()
+    dialog.resize(
+        min(dialog.width(), int(area.width() * fraction)),
+        min(dialog.height(), int(area.height() * fraction)),
+    )
+
+
 class TrajectoryAnalysisDialog(QDialog):
     def __init__(
         self,
@@ -98,6 +131,7 @@ class TrajectoryAnalysisDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle(TITLE)
         self.resize(1100, 760)
+        fit_to_screen(self)
         self.persistent_settings = (
             persistent_settings if persistent_settings is not None else {}
         )
@@ -115,8 +149,11 @@ class TrajectoryAnalysisDialog(QDialog):
         root.addLayout(top)
 
         # ---------------------------------------------------------- left column
-        left = QVBoxLayout()
-        top.addLayout(left, 0)
+        column = QVBoxLayout()
+        top.addLayout(column, 0)
+        settings_page = QWidget()
+        left = QVBoxLayout(settings_page)
+        left.setContentsMargins(0, 0, 0, 0)
 
         src = QGroupBox("Trajectory")
         sl = QGridLayout(src)
@@ -196,12 +233,13 @@ class TrajectoryAnalysisDialog(QDialog):
         self.cancel_button.setEnabled(False)
         run_row.addWidget(self.run_button)
         run_row.addWidget(self.cancel_button)
-        left.addLayout(run_row)
         self.progress = QProgressBar()
         self.progress.setRange(0, 1)
         self.progress.setValue(0)
-        left.addWidget(self.progress)
         left.addStretch(1)
+        column.addWidget(_scrolled_column(settings_page), 1)
+        column.addLayout(run_row)
+        column.addWidget(self.progress)
 
         # --------------------------------------------------------- right column
         splitter = QSplitter(Qt.Orientation.Vertical)

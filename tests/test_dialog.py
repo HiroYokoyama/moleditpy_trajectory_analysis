@@ -175,3 +175,31 @@ def test_nice_ticks():
     assert ticks[0] <= -0.013 and ticks[-1] >= 0.021
     assert plot_mod.nice_ticks(5, 5)
     assert plot_mod.format_tick(0) == "0"
+
+
+def test_settings_column_scrolls_and_ignores_the_wheel(qapp, dialog):
+    """The settings column scrolls (Run stays reachable on a laptop screen) and an
+    unfocused field does not change when the wheel scrolls over it."""
+    from PySide6.QtCore import QPoint, QPointF, Qt
+    from PySide6.QtGui import QWheelEvent
+    from PySide6.QtWidgets import QApplication, QScrollArea
+
+    assert dialog.minimumSizeHint().height() < 600
+    (area,) = [a for a in dialog.findChildren(QScrollArea) if a.widget() is not None]
+    assert not area.widget().isAncestorOf(dialog.run_button)
+    spin = dialog.stride_spin
+    assert area.widget().isAncestorOf(spin)
+    assert spin.focusPolicy() == Qt.FocusPolicy.StrongFocus
+    before = spin.value()
+    event = QWheelEvent(
+        QPointF(5, 5),
+        QPointF(5, 5),
+        QPoint(0, 0),
+        QPoint(0, 120),
+        Qt.MouseButton.NoButton,
+        Qt.KeyboardModifier.NoModifier,
+        Qt.ScrollPhase.NoScrollPhase,
+        False,
+    )
+    QApplication.sendEvent(spin, event)
+    assert spin.value() == before
